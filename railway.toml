@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "echo 'Please deploy backend/ or frontend/ directories separately'"
+
+[deploy]
+startCommand = "echo 'This is a monorepo. Please deploy backend/ or frontend/ directories separately'"
+restartPolicyType = "ON_FAILURE" 

@@ -12,7 +12,8 @@
 ### 后端部署 (Railway)
 1. 部署 `/backend` 目录
 2. 设置环境变量 `FRONTEND_URL` 为前端 URL
+3. 后端 URL: https://fastapitest-production-0ff0.up.railway.app/
 
 ### 前端部署 (Railway)
 1. 部署 `/frontend` 目录
-2. 设置环境变量 `NEXT_PUBLIC_API_URL` 为后端 URL 
+2. 设置环境变量 `NEXT_PUBLIC_API_URL=https://fastapitest-production-0ff0.up.railway.app` 

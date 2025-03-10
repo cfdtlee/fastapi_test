@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import styles from './page.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// 更新为您的实际后端 URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fastapitest-production-0ff0.up.railway.app';
 
 export default function Home() {
   const [url, setUrl] = useState('');

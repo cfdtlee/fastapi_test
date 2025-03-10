@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import os
 
 app = FastAPI()
 
@@ -20,3 +21,9 @@ def get_items():
 @app.get("/items/{item_id}")
 def get_item(item_id: int):
     return {"item": items[item_id]}
+
+# 添加这段代码以便在本地和生产环境都能运行
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

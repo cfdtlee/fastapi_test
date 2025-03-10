@@ -1,13 +1,40 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
+from fastapi.middleware.cors import CORSMiddleware
 import os
+from pydantic import BaseModel
+
+class URLRequest(BaseModel):
+    url: str
 
 app = FastAPI()
+
+# 添加 CORS 中间件，允许前端访问
+frontend_url = os.environ.get("FRONTEND_URL", "*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_url],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 items = []
 
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
+
+@app.post("/process-url")
+def process_url(request: URLRequest):
+    # 这里添加您的 URL 处理逻辑
+    url = request.url
+    # 示例：返回 URL 的长度和是否包含 https
+    return {
+        "url": url,
+        "length": len(url),
+        "is_https": url.startswith("https://"),
+        "status": "processed"
+    }
 
 @app.post("/items")
 def create_item(item: str):

@@ -1,3 +1,5 @@
 fastapi
 uvicorn[standard]
-pydantic 
+pydantic
+youtube-transcript-api
+requests 

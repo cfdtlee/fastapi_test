@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from pydantic import BaseModel
+from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
+import re
 
 class URLRequest(BaseModel):
     url: str
@@ -24,17 +26,74 @@ items = []
 def read_root():
     return {"message": "Hello World"}
 
+def extract_video_id(url):
+    """从YouTube URL中提取视频ID"""
+    # 常规YouTube URL
+    youtube_regex = r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+    match = re.search(youtube_regex, url)
+    return match.group(1) if match else None
+
 @app.post("/process-url")
 def process_url(request: URLRequest):
-    # 这里添加您的 URL 处理逻辑
     url = request.url
-    # 示例：返回 URL 的长度和是否包含 https
-    return {
-        "url": url,
-        "length": len(url),
-        "is_https": url.startswith("https://"),
-        "status": "processed"
-    }
+    
+    # 检查是否是YouTube链接
+    video_id = extract_video_id(url)
+    if not video_id:
+        return {
+            "url": url,
+            "error": "不是有效的YouTube链接",
+            "status": "failed"
+        }
+    
+    try:
+        # 获取视频字幕
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        
+        # 尝试获取中文字幕，如果没有则获取英文字幕，如果都没有则获取任何可用字幕
+        try:
+            transcript = transcript_list.find_transcript(['zh-CN', 'zh'])
+        except:
+            try:
+                transcript = transcript_list.find_transcript(['en'])
+            except:
+                transcript = transcript_list.find_generated_transcript(['zh-CN', 'zh', 'en'])
+        
+        # 获取字幕数据
+        transcript_data = transcript.fetch()
+        
+        # 将字幕组合成文本
+        full_text = " ".join([item['text'] for item in transcript_data])
+        
+        return {
+            "url": url,
+            "video_id": video_id,
+            "transcript": full_text,
+            "language": transcript.language,
+            "status": "processed"
+        }
+    
+    except NoTranscriptFound:
+        return {
+            "url": url,
+            "video_id": video_id,
+            "error": "找不到字幕",
+            "status": "failed"
+        }
+    except TranscriptsDisabled:
+        return {
+            "url": url,
+            "video_id": video_id,
+            "error": "该视频已禁用字幕",
+            "status": "failed"
+        }
+    except Exception as e:
+        return {
+            "url": url,
+            "video_id": video_id,
+            "error": f"处理出错: {str(e)}",
+            "status": "failed"
+        }
 
 @app.post("/items")
 def create_item(item: str):

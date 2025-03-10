@@ -24,7 +24,13 @@ export default function Home() {
       });
       
       const data = await response.json();
-      setResult(JSON.stringify(data, null, 2));
+      
+      // 格式化显示结果
+      if (data.status === 'processed') {
+        setResult(data.transcript || JSON.stringify(data, null, 2));
+      } else {
+        setResult(data.error || JSON.stringify(data, null, 2));
+      }
     } catch (error) {
       setResult(`错误: ${error.message}`);
     } finally {
@@ -35,18 +41,18 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <h1 className={styles.title}>URL 处理工具</h1>
+        <h1 className={styles.title}>YouTube 转文本工具</h1>
         
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label htmlFor="url" className={styles.label}>输入网址:</label>
+            <label htmlFor="url" className={styles.label}>输入 YouTube 链接:</label>
             <input
               type="text"
               id="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className={styles.input}
-              placeholder="https://example.com"
+              placeholder="https://www.youtube.com/watch?v=..."
               required
             />
           </div>
@@ -56,7 +62,7 @@ export default function Home() {
             className={styles.button}
             disabled={loading}
           >
-            {loading ? '处理中...' : '提交'}
+            {loading ? '处理中...' : '获取文本'}
           </button>
         </form>
         
